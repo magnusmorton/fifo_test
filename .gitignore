@@ -1,0 +1,6 @@
+fifo
+test_pipe
+*.o
+a.out
+*~
+out.txt
