@@ -1,5 +1,8 @@
 #include <sys/socket.h>
 #include <sys/types.h>
+#include <netinet/in.h>
+
+#include <arpa/inet.h>
 #include <netdb.h>
 #include <iostream>
 #include <boost/program_options.hpp>
@@ -45,11 +48,30 @@ int main(int argc, const char** argv) {
 }
 
 int ip(char* buf) {
-  struct addrinfo *res;
-  int sock = socket(AF_INET, SOCK_STREAM, 0);
-  getaddrinfo("localhost", "4444", NULL, &res);
-  if (connect(sock, res->ai_addr, res->ai_addrlen) <0) {
+  struct sockaddr_in sa;
+  int sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+  if (sock < 0) {
+    perror("Can't create socket");
+    return -1;
+  }
+
+  memset(&sa, 0,sizeof(sa));
+  sa.sin_family = AF_INET;
+  sa.sin_port = htons(4444);
+  if (!inet_pton(AF_INET, "127.0.0.1", &sa.sin_addr)) {
+    perror("Can't parse address");
+    return -1;
+  }
+  
+  
+  if (connect(sock, (struct sockaddr *)&sa, sizeof sa) == 0) {
+    cout << "HELLO\n" << endl;
     int sent = send(sock, buf,size, 0);
+    cout << "sent: " << sent << endl;
+    if (sent < 0){
+      perror("Something bad sending");
+      return -1;
+    }
     int rem_size = size - sent;
     while (rem_size > 0) {
       cout << "BAD STUFF LIKELY TO HAPPEN!!!!1111" << endl;
@@ -57,6 +79,10 @@ int ip(char* buf) {
       rem_size -= sent;
       
     }
+    shutdown(sock, SHUT_RDWR);
+    close(sock);
+  } else {
+    perror("connect error");
   }
   return 0;
 }
