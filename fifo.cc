@@ -1,7 +1,7 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <netinet/in.h>
-
+#include <climits>
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <iostream>
@@ -11,7 +11,8 @@ using namespace std;
 namespace po = boost::program_options;
 int ip(char*  buf);
 int fifo(char*  buf);
-const int size = 1024*1024*8;
+const unsigned int size = 30000000;
+
 int main(int argc, const char** argv) {
   po::options_description desc("Allowed options");
 
@@ -90,5 +91,6 @@ int ip(char* buf) {
 int fifo(char* buf) {
   auto fd = fopen("test_pipe", "w");
   fwrite(buf,sizeof(char), size, fd);
+  fclose(fd);
   return 0;
 }
